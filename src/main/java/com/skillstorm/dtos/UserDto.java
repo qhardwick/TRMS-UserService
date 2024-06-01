@@ -37,7 +37,7 @@ public class UserDto {
     }
 
     @JsonIgnore
-    public User mapToUser() {
+    public User mapToEntity() {
         User user = new User();
         user.setUsername(username);
         user.setFirstName(firstName);
