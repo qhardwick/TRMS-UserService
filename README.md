@@ -43,7 +43,8 @@ public class CassandraConfig {
     CqlSessionFactoryBean session() {
         CqlSessionFactoryBean cqlSessionFactory = new CqlSessionFactoryBean();
         DriverConfigLoader loader = DriverConfigLoader.fromClasspath("application.conf");
-        cqlSessionFactory.setSessionBuilderConfigurer(sessionBuilder -> sessionBuilder.withConfigLoader(loader).withKeyspace("trms"));
+        cqlSessionFactory.setSessionBuilderConfigurer(sessionBuilder ->
+              sessionBuilder.withConfigLoader(loader).withKeyspace("trms"));
         cqlSessionFactory.setKeyspaceName("trms");
 
         return cqlSessionFactory;
