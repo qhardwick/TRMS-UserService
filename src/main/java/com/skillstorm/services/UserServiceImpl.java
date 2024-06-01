@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
     // Register new User:
     @Override
     public Mono<UserDto> register(UserDto newUser) {
-        return userRepository.save(newUser.mapToUser()).map(UserDto::new);
+        return userRepository.save(newUser.mapToEntity()).map(UserDto::new);
     }
 
     // Find User by Username:
@@ -38,14 +38,16 @@ public class UserServiceImpl implements UserService {
     }
 
     // Update User by Username:
+    // TODO: Check for existence prior to saving
     @Override
     public Mono<UserDto> updateUserByUsername(String username, UserDto updatedUser) {
         updatedUser.setUsername(username);
-        return userRepository.save(updatedUser.mapToUser())
+        return userRepository.save(updatedUser.mapToEntity())
                 .map(UserDto::new);
     }
 
     // Delete User by Username:
+    // TODO: Check for existence prior to deleting
     @Override
     public Mono<Void> deleteByUsername(String username) {
         return userRepository.deleteById(username);
