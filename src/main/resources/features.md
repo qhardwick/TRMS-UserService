@@ -8,7 +8,7 @@
 * As an Employee, I can view my pending reimbursement requests.
 * As an Employee, I can view my awarded reimbursement requests.
 * As an Employee, I can view my available reimbursement amount.
-* As an Employee, I can view my personal information.
+* **As an Employee, I can view my personal information.**
 * As an Employee, if the reimbursement from an event would put me over my yearly allowance I will instead be reimbursed the amount that would not exceed my yearly allowance.
 * As an Employee, I may not be reimbursed for course materials such as books.
 * As an Employee, my reimbursement Forms are submitted to my direct Supervisor.

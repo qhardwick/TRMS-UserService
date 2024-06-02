@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     // Handle requests for resources that do not exist:
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler({UserNotFoundException.class, DepartmentNotFoundException.class})
     public Mono<ResponseEntity<ErrorMessage>> handleNotFoundExceptions(IllegalArgumentException e) {
         ErrorMessage error = new ErrorMessage();
         error.setCode(HttpStatus.NOT_FOUND.value());

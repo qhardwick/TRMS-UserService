@@ -1,5 +1,6 @@
 package com.skillstorm.entities;
 
+import com.skillstorm.constants.Role;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.cassandra.core.mapping.Column;
@@ -11,7 +12,9 @@ import org.springframework.data.cassandra.core.mapping.Table;
 @Table("users")
 public class User {
 
-    @PrimaryKey
+    @PrimaryKey("normalized_username")
+    private String normalizedUsername;
+
     private String username;
 
     @Column("first_name")
@@ -21,4 +24,10 @@ public class User {
     private String lastName;
 
     private String email;
+
+    private String supervisor;
+
+    private String department;
+
+    private Role role;
 }
