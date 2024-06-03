@@ -11,10 +11,11 @@ import lombok.Data;
 @Data
 public class UserDto {
 
-    @NotNull(message = "{username.must}")
     @Size(min = 3, max = 25, message = "{username.size}")
     private String normalizedUsername;
 
+    @NotNull(message = "{username.must}")
+    @Size(min = 3, max = 25, message = "{username.size}")
     private String username;
 
     @NotNull(message = "{firstname.must}")
@@ -25,7 +26,6 @@ public class UserDto {
     @Size(min = 2, max = 50, message = "{lastname.size}")
     private String lastName;
 
-    @NotNull(message = "{email.must}")
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "{email.invalid}")
     private String email;
 
