@@ -8,6 +8,7 @@ The User Service API for the Tuition Reimbursement Management System manages use
 ![](https://img.shields.io/badge/-Spring_Boot-6DB33F?style=flat-square&logo=spring-boot&logoColor=white)
 ![](https://img.shields.io/badge/-Spring_Webflux-236DB33F?style=flat-square&logo=spring&logoColor=white)
 ![](https://img.shields.io/badge/-Cassandra-1287B1?style=flat-square&logo=apachecassandra&logoColor=white)
+![](https://img.shields.io/badge/-RabbitMQ-23FF66?style=flat-square&logo=rabbitmq&color=white)
 ![Spring Security](https://img.shields.io/badge/-Spring_Security-6DB33F?style=flat-square&logo=spring-security&logoColor=white)
 ![JUnit](https://img.shields.io/badge/-JUnit-25A162?style=flat-square&logo=junit5&logoColor=white)
 ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
