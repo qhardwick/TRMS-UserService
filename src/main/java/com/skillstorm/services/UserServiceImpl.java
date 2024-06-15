@@ -1,8 +1,10 @@
 package com.skillstorm.services;
 
+import com.skillstorm.dtos.DepartmentDto;
 import com.skillstorm.dtos.UserDto;
 import com.skillstorm.exceptions.UserNotFoundException;
 import com.skillstorm.repositories.UserRepository;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -13,11 +15,13 @@ import reactor.core.publisher.Mono;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final DepartmentService departmentService;
     private final MessageSource messageSource;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, MessageSource messageSource) {
+    public UserServiceImpl(UserRepository userRepository, DepartmentService departmentService, MessageSource messageSource) {
         this.userRepository = userRepository;
+        this.departmentService = departmentService;
         this.messageSource = messageSource;
     }
 
@@ -61,5 +65,23 @@ public class UserServiceImpl implements UserService {
         // First check if the user exists:
         return findByUsername(username)
                 .flatMap(foundUser -> userRepository.deleteById(username));
+    }
+
+    // Get Supervisor:
+    @Override
+    @RabbitListener(queues = "supervisor-lookup-queue")
+    public Mono<String> findSupervisorByEmployeeUsername(String employeeUsername) {
+        return findByUsername(employeeUsername)
+                .map(UserDto::getSupervisor);
+    }
+
+    // Get Department Head:
+    @Override
+    @RabbitListener(queues = "department-head-lookup-queue")
+    public Mono<String> findDepartmentHeadByEmployeeUsername(String employeeUsername) {
+        return findByUsername(employeeUsername)
+                .map(UserDto::getDepartment)
+                .map(departmentService::findById)
+                .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead));
     }
 }
