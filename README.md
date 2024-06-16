@@ -14,8 +14,8 @@ The User Service API for the Tuition Reimbursement Management System manages use
 ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![AWS](https://img.shields.io/badge/-AWS-232F3E?style=flat-square&logo=amazon-aws&logoColor=white)
 ![Maven](https://img.shields.io/badge/-Maven-C71A36?style=flat-square&logo=apache-maven&logoColor=white)
-![Eureka](https://img.shields.io/badge/-Eureka-239D60?style=flat-square&logo=spring&logoColor=white)
 ![Microservices](https://img.shields.io/badge/-Microservices-000000?style=flat-square&logo=cloud&logoColor=white)
+![Eureka](https://img.shields.io/badge/-Eureka-E50914?style=flat-square&logo=Netflix&logoColor=white)
 
 
 ## Features
