@@ -13,7 +13,7 @@ public interface DepartmentService {
     Flux<DepartmentDto> findAll();
 
     // Find Department by name:
-    Mono<DepartmentDto> findById(String name);
+    Mono<DepartmentDto> findByName(String name);
 
     // Update Department Head:
     Mono<DepartmentDto> updateDepartmentHead(String name, DepartmentDto newHead);

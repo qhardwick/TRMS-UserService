@@ -4,6 +4,9 @@ import com.skillstorm.dtos.DepartmentDto;
 import com.skillstorm.exceptions.DepartmentNotFoundException;
 import com.skillstorm.repositories.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,7 +37,8 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     // Find Department by name:
     @Override
-    public Mono<DepartmentDto> findById(String name) {
+    @Cacheable(value = "departmentCache", key = "#name")
+    public Mono<DepartmentDto> findByName(String name) {
         return departmentRepository.findById(name)
                 .map(DepartmentDto::new)
                 .switchIfEmpty(Mono.error(new DepartmentNotFoundException("department.not.found", name)));
@@ -42,6 +46,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     // Update Department Head:
     @Override
+    @CachePut(value = "departmentCache", key = "#name")
     public Mono<DepartmentDto> updateDepartmentHead(String name, DepartmentDto newHead) {
         newHead.setName(name);
         return departmentRepository.save(newHead.mapToEntity())
@@ -50,6 +55,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     // Delete Department by name:
     @Override
+    @CacheEvict(value = "departmentCache", key = "#name")
     public Mono<Void> deleteByName(String name) {
         return departmentRepository.deleteById(name);
     }

@@ -98,6 +98,19 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
+        <!-- Enables Spring's caching capabilities -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- EhCache is an in-memory cache provider -->
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+        </dependency>
+
+
         <!-- Auto relaunch server when code base changes -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
