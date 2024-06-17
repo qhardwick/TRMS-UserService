@@ -7,6 +7,7 @@ import com.skillstorm.repositories.UserRepository;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -70,7 +71,7 @@ public class UserServiceImpl implements UserService {
     // Get Supervisor:
     @Override
     @RabbitListener(queues = "supervisor-lookup-queue")
-    public Mono<String> findSupervisorByEmployeeUsername(String employeeUsername) {
+    public Mono<String> findSupervisorByEmployeeUsername(@Payload String employeeUsername) {
         return findByUsername(employeeUsername)
                 .map(UserDto::getSupervisor);
     }
@@ -78,10 +79,10 @@ public class UserServiceImpl implements UserService {
     // Get Department Head:
     @Override
     @RabbitListener(queues = "department-head-lookup-queue")
-    public Mono<String> findDepartmentHeadByEmployeeUsername(String employeeUsername) {
+    public Mono<String> findDepartmentHeadByEmployeeUsername(@Payload String employeeUsername) {
         return findByUsername(employeeUsername)
                 .map(UserDto::getDepartment)
-                .map(departmentService::findById)
+                .map(departmentService::findByName)
                 .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead));
     }
 }

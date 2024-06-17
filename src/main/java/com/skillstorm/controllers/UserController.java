@@ -28,7 +28,6 @@ public class UserController {
     }
 
     // Register new User:
-    // We can still wrap the response in a ResponseEntity if we want to return a specific status like 201:
     @PostMapping
     public Mono<ResponseEntity<UserDto>> register(@Valid @RequestBody UserDto newUser) {
         return userService.register(newUser)
@@ -36,7 +35,6 @@ public class UserController {
     }
 
     // Find User by Username:
-    // SpringWebflux will automatically wrap it for us, though, so if we're fine with 200 we can just return the object:
     @GetMapping("/{username}")
     public Mono<UserDto> findUserByUsername(@PathVariable("username") String username) {
         return userService.findByUsername(username);

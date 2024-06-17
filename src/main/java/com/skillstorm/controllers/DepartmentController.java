@@ -43,7 +43,7 @@ public class DepartmentController {
     // Find Department by name:
     @GetMapping("/{name}")
     public Mono<DepartmentDto> findByName(@PathVariable("name") String name) {
-        return departmentService.findById(name);
+        return departmentService.findByName(name);
     }
 
     // Update Department Head:
