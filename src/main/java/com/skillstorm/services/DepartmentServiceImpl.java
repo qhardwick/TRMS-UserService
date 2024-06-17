@@ -23,6 +23,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     // Create new Department:
     @Override
+    @CachePut(value = "departmentCache", key = "#name")
     public Mono<DepartmentDto> addDepartment(DepartmentDto newDepartment) {
         return departmentRepository.save(newDepartment.mapToEntity())
                 .map(DepartmentDto::new);
