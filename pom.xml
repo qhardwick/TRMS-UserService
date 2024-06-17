@@ -104,11 +104,13 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
-        <!-- EhCache is an in-memory cache provider -->
+        <!-- Caffeine is an in-memory cache provider -->
         <dependency>
-            <groupId>org.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.1.8</version>
         </dependency>
+
 
 
         <!-- Auto relaunch server when code base changes -->

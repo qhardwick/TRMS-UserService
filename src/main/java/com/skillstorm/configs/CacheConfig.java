@@ -1,30 +1,42 @@
 package com.skillstorm.configs;
 
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.skillstorm.dtos.DepartmentDto;
+import com.skillstorm.services.DepartmentService;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.jcache.JCacheCacheManager;
-import org.springframework.cache.jcache.JCacheManagerFactoryBean;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import reactor.core.publisher.Mono;
 
-import static java.util.Objects.requireNonNull;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 @Configuration
 @EnableCaching
-public class CacheConfig implements CachingConfigurer {
+public class CacheConfig {
 
     @Bean
-    @Override
-    public CacheManager cacheManager() {
-        return new JCacheCacheManager(requireNonNull(jCacheManagerFactory().getObject()));
+    public CacheManager departmentCacheManager() {
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("departmentCache");
+        cacheManager.setCaffeine(Caffeine.newBuilder()
+                .initialCapacity(10));
+        cacheManager.setAsyncCacheMode(true);
+        return cacheManager;
     }
 
     @Bean
-    public JCacheManagerFactoryBean jCacheManagerFactory() {
-        JCacheManagerFactoryBean jCacheManagerFactoryBean = new JCacheManagerFactoryBean();
-        jCacheManagerFactoryBean.setCacheManagerUri(null);
-        jCacheManagerFactoryBean.setBeanClassLoader(getClass().getClassLoader());
-        return jCacheManagerFactoryBean;
+    public AsyncLoadingCache<String, DepartmentDto> departmentDtoCache(DepartmentService departmentService) {
+        return Caffeine.newBuilder()
+                .executor(Executors.newFixedThreadPool(3))
+                .buildAsync((key, executor) -> loadDepartmentDto(key, departmentService));
     }
+
+    private CompletableFuture<DepartmentDto> loadDepartmentDto(String key, DepartmentService departmentService) {
+        return CompletableFuture.supplyAsync(() -> departmentService.findByName(key))
+                .thenCompose(Mono::toFuture);
+    }
+
 }

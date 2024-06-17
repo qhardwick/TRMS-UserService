@@ -27,7 +27,7 @@ public class DepartmentDto {
     @JsonIgnore
     public Department mapToEntity() {
         Department department = new Department();
-        department.setName(name.toUpperCase());
+        department.setName(name.toLowerCase());
         department.setHead(head);
 
         return department;
