@@ -4,9 +4,14 @@ import com.skillstorm.dtos.DepartmentDto;
 import com.skillstorm.dtos.UserDto;
 import com.skillstorm.exceptions.UserNotFoundException;
 import com.skillstorm.repositories.UserRepository;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -17,12 +22,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final DepartmentService departmentService;
+    private final RabbitTemplate rabbitTemplate;
     private final MessageSource messageSource;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, DepartmentService departmentService, MessageSource messageSource) {
+    public UserServiceImpl(UserRepository userRepository, DepartmentService departmentService, RabbitTemplate rabbitTemplate,  MessageSource messageSource) {
         this.userRepository = userRepository;
         this.departmentService = departmentService;
+        this.rabbitTemplate = rabbitTemplate;
         this.messageSource = messageSource;
     }
 
@@ -69,20 +76,60 @@ public class UserServiceImpl implements UserService {
     }
 
     // Get Supervisor:
-    @Override
     @RabbitListener(queues = "supervisor-lookup-queue")
-    public Mono<String> findSupervisorByEmployeeUsername(@Payload String employeeUsername) {
+    public Mono<Void> findSupervisorByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+                                                    @Header(AmqpHeaders.REPLY_TO) String replyTo) {
         return findByUsername(employeeUsername)
-                .map(UserDto::getSupervisor);
+                .map(user -> {
+                    String supervisor = user.getSupervisor();
+                    Message responseMessage = MessageBuilder.withBody(supervisor.getBytes())
+                            .setCorrelationId(correlationId)
+                            .build();
+
+                    // Send the response to the replyTo queue
+                    rabbitTemplate.send(replyTo, responseMessage);
+                    return supervisor;
+                }).then();
     }
 
     // Get Department Head:
-    @Override
     @RabbitListener(queues = "department-head-lookup-queue")
-    public Mono<String> findDepartmentHeadByEmployeeUsername(@Payload String employeeUsername) {
+    public Mono<Void> findDepartmentHeadByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+                                                            @Header(AmqpHeaders.REPLY_TO) String replyTo) {
+
         return findByUsername(employeeUsername)
                 .map(UserDto::getDepartment)
                 .map(departmentService::findByName)
-                .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead));
+                .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead))
+
+                .map(departmentHead -> {
+                    Message responseMessage = MessageBuilder.withBody(departmentHead.getBytes())
+                            .setCorrelationId(correlationId)
+                            .build();
+
+                    // Send the response to the replyTo queue
+                    rabbitTemplate.send(replyTo, responseMessage);
+                    return departmentHead;
+                }).then();
+    }
+
+    // Get Benefits Coordinator. Placeholder for now:
+    @RabbitListener(queues = "benco-lookup-queue")
+    public Mono<Void> findBencoByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+                                                           @Header(AmqpHeaders.REPLY_TO) String replyTo) {
+
+        return findByUsername(employeeUsername)
+                .map(UserDto::getDepartment)
+                .map(departmentService::findByName)
+                .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead))
+                .map(benco -> {
+                    Message responseMessage = MessageBuilder.withBody(benco.getBytes())
+                            .setCorrelationId(correlationId)
+                            .build();
+
+                    // Send the response to the replyTo queue
+                    rabbitTemplate.send(replyTo, responseMessage);
+                    return benco;
+                }).then();
     }
 }
