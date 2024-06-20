@@ -20,10 +20,4 @@ public interface UserService {
 
     // Delete by Username:
     Mono<Void> deleteByUsername(String username);
-
-    // Get Supervisor:
-    Mono<String> findSupervisorByEmployeeUsername(String employeeUsername);
-
-    // Get Department Head:
-    Mono<String> findDepartmentHeadByEmployeeUsername(String employeeUsername);
 }
