@@ -1,5 +1,7 @@
 package com.skillstorm.services;
 
+import com.skillstorm.constants.Role;
+import com.skillstorm.dtos.ApproverDto;
 import com.skillstorm.dtos.DepartmentDto;
 import com.skillstorm.dtos.UserDto;
 import com.skillstorm.exceptions.UserNotFoundException;
@@ -80,16 +82,16 @@ public class UserServiceImpl implements UserService {
     public Mono<Void> findSupervisorByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                                     @Header(AmqpHeaders.REPLY_TO) String replyTo) {
         return findByUsername(employeeUsername)
-                .map(user -> {
-                    String supervisor = user.getSupervisor();
-                    Message responseMessage = MessageBuilder.withBody(supervisor.getBytes())
-                            .setCorrelationId(correlationId)
-                            .build();
+                .flatMap(user -> findByUsername(user.getSupervisor()))
+                .map(supervisor -> {
 
-                    // Send the response to the replyTo queue
-                    rabbitTemplate.send(replyTo, responseMessage);
-                    return supervisor;
-                }).then();
+                    ApproverDto approver = new ApproverDto(supervisor.getUsername(), supervisor.getRole().name());
+                    rabbitTemplate.convertAndSend(replyTo, approver, message -> {
+                        message.getMessageProperties().setCorrelationId(correlationId);
+                        return message;
+                    });
+                    return null;
+                });
     }
 
     // Get Department Head:
@@ -101,16 +103,14 @@ public class UserServiceImpl implements UserService {
                 .map(UserDto::getDepartment)
                 .map(departmentService::findByName)
                 .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead))
-
                 .map(departmentHead -> {
-                    Message responseMessage = MessageBuilder.withBody(departmentHead.getBytes())
-                            .setCorrelationId(correlationId)
-                            .build();
-
-                    // Send the response to the replyTo queue
-                    rabbitTemplate.send(replyTo, responseMessage);
-                    return departmentHead;
-                }).then();
+                    ApproverDto approver = new ApproverDto(departmentHead, Role.DEPARTMENT_HEAD.name());
+                    rabbitTemplate.convertAndSend(replyTo, approver, message -> {
+                        message.getMessageProperties().setCorrelationId(correlationId);
+                        return message;
+                    });
+                    return null;
+                });
     }
 
     // Get Benefits Coordinator. Placeholder for now:
@@ -122,14 +122,13 @@ public class UserServiceImpl implements UserService {
                 .map(UserDto::getDepartment)
                 .map(departmentService::findByName)
                 .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead))
-                .map(benco -> {
-                    Message responseMessage = MessageBuilder.withBody(benco.getBytes())
-                            .setCorrelationId(correlationId)
-                            .build();
-
-                    // Send the response to the replyTo queue
-                    rabbitTemplate.send(replyTo, responseMessage);
-                    return benco;
-                }).then();
+                .map(departmentHead -> {
+                    ApproverDto approver = new ApproverDto(departmentHead, Role.DEPARTMENT_HEAD.name());
+                    rabbitTemplate.convertAndSend(replyTo, approver, message -> {
+                        message.getMessageProperties().setCorrelationId(correlationId);
+                        return message;
+                    });
+                    return null;
+                });
     }
 }
