@@ -50,6 +50,7 @@ public class RabbitMqConfig {
     }
 
     // Create the queues:
+    // From Form-Service:
     @Bean
     public Queue supervisorLookupQueue() {
         return new Queue(Queues.SUPERVISOR_LOOKUP.getQueue());
@@ -66,6 +67,12 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    public Queue adjustmentRequestQueue() {
+        return new Queue(Queues.ADJUSTMENT_REQUEST.getQueue());
+    }
+
+    // To Form-Service:
+    @Bean
     public Queue supervisorResponseQueue() {
         return new Queue(Queues.SUPERVISOR_RESPONSE.getQueue());
     }
@@ -80,8 +87,14 @@ public class RabbitMqConfig {
         return new Queue(Queues.BENCO_RESPONSE.getQueue());
     }
 
+    @Bean
+    public Queue adjustmentResponseQueue() {
+        return new Queue(Queues.ADJUSTMENT_RESPONSE.getQueue());
+    }
+
 
     // Bind the queues to the exchange:
+    // From Form-Service:
     @Bean
     public Binding supervisorLookupBinding(Queue supervisorLookupQueue, Exchange directExchange) {
         return BindingBuilder.bind(supervisorLookupQueue)
@@ -107,6 +120,15 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    public Binding adjustmentRequestBinding(Queue adjustmentRequestQueue, Exchange directExchange) {
+        return BindingBuilder.bind(adjustmentRequestQueue)
+                .to(directExchange)
+                .with(Queues.ADJUSTMENT_REQUEST.getQueue())
+                .noargs();
+    }
+
+    // To Form-Service:
+    @Bean
     public Binding supervisorResponseBinding(Queue supervisorResponseQueue, Exchange directExchange) {
         return BindingBuilder.bind(supervisorResponseQueue)
                 .to(directExchange)
@@ -127,6 +149,14 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(bencoResponseQueue)
                 .to(directExchange)
                 .with(Queues.BENCO_RESPONSE.getQueue())
+                .noargs();
+    }
+
+    @Bean
+    public Binding adjustmentResponseBinding(Queue adjustmentResponseQueue, Exchange directExchange) {
+        return BindingBuilder.bind(adjustmentResponseQueue)
+                .to(directExchange)
+                .with(Queues.ADJUSTMENT_RESPONSE.getQueue())
                 .noargs();
     }
 }

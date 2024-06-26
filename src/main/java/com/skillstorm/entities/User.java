@@ -7,6 +7,8 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @Table("users")
@@ -28,6 +30,12 @@ public class User {
     private String supervisor;
 
     private String department;
+
+    @Column("yearly_allowance")
+    private BigDecimal yearlyAllowance;
+
+    @Column("remaining_balance")
+    private BigDecimal remainingBalance;
 
     private Role role;
 }

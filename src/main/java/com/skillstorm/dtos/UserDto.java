@@ -8,11 +8,10 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class UserDto {
-
-    @Size(min = 3, max = 25, message = "{username.size}")
-    private String normalizedUsername;
 
     @NotNull(message = "{username.must}")
     @Size(min = 3, max = 25, message = "{username.size}")
@@ -33,21 +32,27 @@ public class UserDto {
 
     private String department;
 
+    private BigDecimal yearlyAllowance;
+
+    private BigDecimal remainingBalance;
+
     private Role role;
 
     public UserDto() {
         this.role = Role.EMPLOYEE;
+        this.yearlyAllowance = BigDecimal.valueOf(1000.00).setScale(2);
+        this.remainingBalance = BigDecimal.valueOf(1000.00).setScale(2);
     }
 
     public UserDto(User user) {
-        super();
-        this.normalizedUsername = user.getNormalizedUsername();
         this.username = user.getUsername();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
         this.supervisor = user.getSupervisor();
         this.department = user.getDepartment();
+        this.yearlyAllowance = user.getYearlyAllowance();
+        this.remainingBalance = user.getRemainingBalance();
         this.role = user.getRole();
     }
 
@@ -61,6 +66,8 @@ public class UserDto {
         user.setEmail(email);
         user.setSupervisor(supervisor);
         user.setDepartment(department);
+        user.setYearlyAllowance(yearlyAllowance);
+        user.setRemainingBalance(remainingBalance);
         user.setRole(role);
 
         return user;
