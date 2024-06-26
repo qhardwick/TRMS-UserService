@@ -1,5 +1,5 @@
 package com.skillstorm.constants;
 
 public enum Role {
-    EMPLOYEE, BENCO;
+    EMPLOYEE, DEPARTMENT_HEAD, BENCO;
 }
