@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
 
     // Get Supervisor:
     @RabbitListener(queues = "supervisor-lookup-queue")
-    private Mono<Void> findSupervisorByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+    public Mono<Void> findSupervisorByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                                     @Header(AmqpHeaders.REPLY_TO) String replyTo) {
         return findByUsername(employeeUsername)
                 .flatMap(user -> findByUsername(user.getSupervisor()))
@@ -117,7 +117,7 @@ public class UserServiceImpl implements UserService {
 
     // Get Department Head:
     @RabbitListener(queues = "department-head-lookup-queue")
-    private Mono<Void> findDepartmentHeadByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+    public Mono<Void> findDepartmentHeadByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                                             @Header(AmqpHeaders.REPLY_TO) String replyTo) {
 
         return findByUsername(employeeUsername)
@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
 
     // Get Benefits Coordinator. Placeholder for now:
     @RabbitListener(queues = "benco-lookup-queue")
-    private Mono<Void> findBencoByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+    public Mono<Void> findBencoByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                                            @Header(AmqpHeaders.REPLY_TO) String replyTo) {
 
         return findByUsername(employeeUsername)
@@ -153,7 +153,7 @@ public class UserServiceImpl implements UserService {
 
     // Update User's balance due to approved Reimbursement Form:
     @RabbitListener(queues = "adjustment-request-queue")
-    private Mono<Void> updateUserBalance(@Payload ReimbursementMessageDto reimbursementMessage, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+    public Mono<Void> updateUserBalance(@Payload ReimbursementMessageDto reimbursementMessage, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                          @Header(AmqpHeaders.REPLY_TO) String replyTo) {
         return findByUsername(reimbursementMessage.getUsername())
                 .map(user -> {
