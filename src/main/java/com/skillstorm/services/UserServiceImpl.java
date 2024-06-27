@@ -156,19 +156,33 @@ public class UserServiceImpl implements UserService {
     public Mono<Void> updateUserBalance(@Payload ReimbursementMessageDto reimbursementMessage, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                          @Header(AmqpHeaders.REPLY_TO) String replyTo) {
         return findByUsername(reimbursementMessage.getUsername())
-                .map(user -> {
+                .flatMap(user -> {
                     // Reimburse the total amount listed on the Form unless it is greater than User's remaining balance, in which case award the remaining balance:
                     BigDecimal userBalance = user.getRemainingBalance();
                     BigDecimal grossReimbursement = reimbursementMessage.getReimbursement();
                     BigDecimal netReimbursement = userBalance.min(grossReimbursement);
+                    reimbursementMessage.setReimbursement(netReimbursement);
 
                     // Update the User's remaining balance and then return the net reimbursement amount to Form-Service so the Form can be updated::
                     user.setRemainingBalance(userBalance.subtract(netReimbursement).setScale(2, RoundingMode.HALF_UP));
                     return userRepository.save(user.mapToEntity())
-                            .thenReturn(netReimbursement);
+                            .thenReturn(reimbursementMessage);
                 }).doOnNext(reimbursement -> rabbitTemplate.convertAndSend(replyTo, reimbursement, message -> {
                     message.getMessageProperties().setCorrelationId(correlationId);
                     return message;
                 })).then();
+    }
+
+    // Restore Pending balance to User from cancelled request:
+    @RabbitListener(queues = "cancel-request-queue")
+    public Mono<Void> handleCancelRequest(@Payload ReimbursementMessageDto reimbursementMessage) {
+        return findByUsername(reimbursementMessage.getUsername())
+                .flatMap(user -> {
+                    user.setRemainingBalance(user.getRemainingBalance()
+                            .add(reimbursementMessage.getReimbursement())
+                            .setScale(2, RoundingMode.HALF_UP));
+                    return userRepository.save(user.mapToEntity())
+                            .then();
+                });
     }
 }

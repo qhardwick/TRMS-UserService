@@ -9,6 +9,7 @@ public enum Queues {
     DEPARTMENT_HEAD_LOOKUP("department-head-lookup-queue"),
     BENCO_LOOKUP("benco-lookup-queue"),
     ADJUSTMENT_REQUEST("adjustment-request-queue"),
+    CANCEL_REQUEST("cancel-request-queue"),
 
     // To Form-Service:
     SUPERVISOR_RESPONSE("supervisor-response-queue"),
