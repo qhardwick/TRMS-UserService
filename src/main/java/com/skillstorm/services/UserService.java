@@ -20,4 +20,10 @@ public interface UserService {
 
     // Delete by Username:
     Mono<Void> deleteByUsername(String username);
+
+    // Promote User to Department Head:
+    Mono<UserDto> makeDepartmentHead(String username);
+
+    // Promote User to Benefits Coordinator:
+    Mono<UserDto> makeBenco(String username);
 }
