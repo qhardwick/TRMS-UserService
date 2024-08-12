@@ -4,6 +4,13 @@ import lombok.Getter;
 
 @Getter
 public enum Queues {
+
+    // To Authentication-Service:
+    REGISTRATION_REQUEST("registration-request-queue"),
+
+    // From Authentication-Service:
+    REGISTRATION_RESPONSE("registration-response-queue"),
+
     // From Form-Service:
     SUPERVISOR_LOOKUP("supervisor-lookup-queue"),
     DEPARTMENT_HEAD_LOOKUP("department-head-lookup-queue"),

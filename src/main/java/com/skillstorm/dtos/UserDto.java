@@ -17,6 +17,8 @@ public class UserDto {
     @Size(min = 3, max = 25, message = "{username.size}")
     private String username;
 
+    private String password;
+
     @NotNull(message = "{firstname.must}")
     @Size(min = 2, max = 50, message = "{firstname.size}")
     private String firstName;
@@ -71,5 +73,10 @@ public class UserDto {
         user.setRole(role);
 
         return user;
+    }
+
+    @JsonIgnore
+    public String getPassword() {
+        return password;
     }
 }
