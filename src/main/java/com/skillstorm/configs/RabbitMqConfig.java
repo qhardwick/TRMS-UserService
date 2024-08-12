@@ -39,7 +39,7 @@ public class RabbitMqConfig {
     public RabbitTemplate rabbitTemplate() {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
         rabbitTemplate.setMessageConverter(messageConverter());
-        rabbitTemplate.setReplyTimeout(60000);
+        rabbitTemplate.setReplyTimeout(6000);
         return rabbitTemplate;
     }
 
@@ -50,6 +50,19 @@ public class RabbitMqConfig {
     }
 
     // Create the queues:
+
+    // To Authentication-Service:
+    @Bean
+    public Queue registrationRequestQueue() {
+        return new Queue(Queues.REGISTRATION_REQUEST.getQueue());
+    }
+
+    // From Authentication-Service:
+    @Bean
+    public Queue registrationResponseQueue() {
+        return new Queue(Queues.REGISTRATION_RESPONSE.getQueue());
+    }
+
     // From Form-Service:
     @Bean
     public Queue supervisorLookupQueue() {
@@ -99,12 +112,31 @@ public class RabbitMqConfig {
 
 
     // Bind the queues to the exchange:
+
+    // To Authentication-Service:
+    @Bean
+    public Binding registrationRequestBinding(Queue registrationRequestQueue, Exchange directExchange) {
+        return BindingBuilder.bind(registrationRequestQueue)
+                .to(directExchange)
+                .with(Queues.REGISTRATION_REQUEST)
+                .noargs();
+    }
+
+    // From Authentication-Service:
+    @Bean
+    public Binding registrationResponseBinding(Queue registrationResponseQueue, Exchange directExchange) {
+        return BindingBuilder.bind(registrationResponseQueue)
+                .to(directExchange)
+                .with(Queues.REGISTRATION_RESPONSE)
+                .noargs();
+    }
+
     // From Form-Service:
     @Bean
     public Binding supervisorLookupBinding(Queue supervisorLookupQueue, Exchange directExchange) {
         return BindingBuilder.bind(supervisorLookupQueue)
                 .to(directExchange)
-                .with(Queues.SUPERVISOR_LOOKUP.getQueue())
+                .with(Queues.SUPERVISOR_LOOKUP)
                 .noargs();
     }
 
@@ -112,7 +144,7 @@ public class RabbitMqConfig {
     public Binding departmentHeadLookupBinding(Queue departmentHeadLookupQueue, Exchange directExchange) {
         return BindingBuilder.bind(departmentHeadLookupQueue)
                 .to(directExchange)
-                .with(Queues.DEPARTMENT_HEAD_LOOKUP.getQueue())
+                .with(Queues.DEPARTMENT_HEAD_LOOKUP)
                 .noargs();
     }
 
@@ -120,7 +152,7 @@ public class RabbitMqConfig {
     public Binding bencoLookupBinding(Queue bencoLookupQueue, Exchange directExchange) {
         return BindingBuilder.bind(bencoLookupQueue)
                 .to(directExchange)
-                .with(Queues.BENCO_LOOKUP.getQueue())
+                .with(Queues.BENCO_LOOKUP)
                 .noargs();
     }
 
@@ -128,7 +160,7 @@ public class RabbitMqConfig {
     public Binding adjustmentRequestBinding(Queue adjustmentRequestQueue, Exchange directExchange) {
         return BindingBuilder.bind(adjustmentRequestQueue)
                 .to(directExchange)
-                .with(Queues.ADJUSTMENT_REQUEST.getQueue())
+                .with(Queues.ADJUSTMENT_REQUEST)
                 .noargs();
     }
 
@@ -136,7 +168,7 @@ public class RabbitMqConfig {
     public Binding cancelRequestBinding(Queue cancelRequestQueue, Exchange directExchange) {
         return BindingBuilder.bind(cancelRequestQueue)
                 .to(directExchange)
-                .with(Queues.CANCEL_REQUEST.getQueue())
+                .with(Queues.CANCEL_REQUEST)
                 .noargs();
     }
 
@@ -145,7 +177,7 @@ public class RabbitMqConfig {
     public Binding supervisorResponseBinding(Queue supervisorResponseQueue, Exchange directExchange) {
         return BindingBuilder.bind(supervisorResponseQueue)
                 .to(directExchange)
-                .with(Queues.SUPERVISOR_RESPONSE.getQueue())
+                .with(Queues.SUPERVISOR_RESPONSE)
                 .noargs();
     }
 
@@ -153,7 +185,7 @@ public class RabbitMqConfig {
     public Binding departmentHeadResponseBinding(Queue departmentHeadResponseQueue, Exchange directExchange) {
         return BindingBuilder.bind(departmentHeadResponseQueue)
                 .to(directExchange)
-                .with(Queues.DEPARTMENT_HEAD_RESPONSE.getQueue())
+                .with(Queues.DEPARTMENT_HEAD_RESPONSE)
                 .noargs();
     }
 
@@ -161,7 +193,7 @@ public class RabbitMqConfig {
     public Binding bencoResponseBinding(Queue bencoResponseQueue, Exchange directExchange) {
         return BindingBuilder.bind(bencoResponseQueue)
                 .to(directExchange)
-                .with(Queues.BENCO_RESPONSE.getQueue())
+                .with(Queues.BENCO_RESPONSE)
                 .noargs();
     }
 
@@ -169,7 +201,7 @@ public class RabbitMqConfig {
     public Binding adjustmentResponseBinding(Queue adjustmentResponseQueue, Exchange directExchange) {
         return BindingBuilder.bind(adjustmentResponseQueue)
                 .to(directExchange)
-                .with(Queues.ADJUSTMENT_RESPONSE.getQueue())
+                .with(Queues.ADJUSTMENT_RESPONSE)
                 .noargs();
     }
 }

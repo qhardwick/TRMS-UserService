@@ -1,10 +1,8 @@
 package com.skillstorm.services;
 
+import com.skillstorm.constants.Queues;
 import com.skillstorm.constants.Role;
-import com.skillstorm.dtos.ApproverDto;
-import com.skillstorm.dtos.DepartmentDto;
-import com.skillstorm.dtos.ReimbursementMessageDto;
-import com.skillstorm.dtos.UserDto;
+import com.skillstorm.dtos.*;
 import com.skillstorm.exceptions.UserNotFoundException;
 import com.skillstorm.repositories.UserRepository;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -17,9 +15,13 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoSink;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -27,6 +29,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final DepartmentService departmentService;
     private final RabbitTemplate rabbitTemplate;
+    private final Map<String, MonoSink<CredentialsDto>> registrationCorrelationMap;
     private final MessageSource messageSource;
 
     @Autowired
@@ -34,6 +37,7 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
         this.departmentService = departmentService;
         this.rabbitTemplate = rabbitTemplate;
+        this.registrationCorrelationMap = new ConcurrentHashMap<>();
         this.messageSource = messageSource;
     }
 
@@ -41,12 +45,42 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<UserDto> register(UserDto newUser) {
         newUser.setEmail(newUser.getUsername().toLowerCase() + "@corporate.com");
-        return userRepository.save(newUser.mapToEntity()).map(UserDto::new);
+        return registerWithAuthenticationService(newUser.getUsername(), newUser.getPassword())
+                .flatMap(authCredentials -> userRepository.save(newUser.mapToEntity()).map(UserDto::new));
+    }
+
+    private Mono<CredentialsDto> registerWithAuthenticationService(String username, String password) {
+        return Mono.create(sink -> {
+            // Generate an ID for this message:
+            String correlationId = UUID.randomUUID().toString();
+
+            // Use the ID to identify where to set the response once it comes in:
+            registrationCorrelationMap.put(correlationId, sink);
+
+            // Package the user credentials into an object to send to Authentication-Service:
+            CredentialsDto credentials = new CredentialsDto(username, password);
+
+            // Send the message with instructions for the response:
+            rabbitTemplate.convertAndSend(Queues.REGISTRATION_REQUEST.getQueue(), credentials, message -> {
+                message.getMessageProperties().setCorrelationId(correlationId);
+                message.getMessageProperties().setReplyTo(Queues.REGISTRATION_RESPONSE.getQueue());
+                return message;
+            });
+        });
+    }
+
+    @RabbitListener(queues = "registration-response-queue")
+    public Mono<Void> handleRegistrationResponse(@Payload CredentialsDto credentials, @Header(AmqpHeaders.CORRELATION_ID) String correlationId) {
+        MonoSink<CredentialsDto> sink = registrationCorrelationMap.remove(correlationId);
+        if(sink != null) {
+            sink.success(credentials);
+        }
+        return Mono.empty();
     }
 
     // Find User by Username:
     @Override
-    public Mono<UserDto> findByUsername(String username) {
+    public Mono<UserDto> findById(String username) {
         return userRepository.findById(username.toLowerCase()).map(UserDto::new)
                 .switchIfEmpty(Mono.error(new UserNotFoundException("{user.not.found}", username)));
     }
@@ -61,7 +95,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<UserDto> updateUserByUsername(String username, UserDto updatedUser) {
         // First check if the user exists:
-        return findByUsername(username).flatMap(foundUser -> {
+        return findById(username).flatMap(foundUser -> {
             // Set the username in case it was not included in the request:
             updatedUser.setUsername(username);
 
@@ -75,14 +109,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<Void> deleteByUsername(String username) {
         // First check if the user exists:
-        return findByUsername(username)
+        return findById(username)
                 .flatMap(foundUser -> userRepository.deleteById(username));
     }
 
     // Promote User to Department Head:
     @Override
     public Mono<UserDto> makeDepartmentHead(String username) {
-        return findByUsername(username.toLowerCase()).flatMap(user -> {
+        return findById(username.toLowerCase()).flatMap(user -> {
             user.setRole(Role.DEPARTMENT_HEAD);
             return userRepository.save(user.mapToEntity())
                     .map(UserDto::new);
@@ -92,7 +126,7 @@ public class UserServiceImpl implements UserService {
     // Promote User to Benefits Coordinator:
     @Override
     public Mono<UserDto> makeBenco(String username) {
-        return findByUsername(username.toLowerCase())
+        return findById(username.toLowerCase())
                 .flatMap(user -> {
                     user.setRole(Role.BENCO);
                     return userRepository.save(user.mapToEntity())
@@ -104,8 +138,8 @@ public class UserServiceImpl implements UserService {
     @RabbitListener(queues = "supervisor-lookup-queue")
     public Mono<Void> findSupervisorByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                                     @Header(AmqpHeaders.REPLY_TO) String replyTo) {
-        return findByUsername(employeeUsername)
-                .flatMap(user -> findByUsername(user.getSupervisor()))
+        return findById(employeeUsername)
+                .flatMap(user -> findById(user.getSupervisor()))
                 .doOnNext(supervisor -> {
                     ApproverDto approver = new ApproverDto(supervisor.getUsername(), supervisor.getRole().name());
                     rabbitTemplate.convertAndSend(replyTo, approver, message -> {
@@ -115,12 +149,12 @@ public class UserServiceImpl implements UserService {
                 }).then();
     }
 
-    // Get Department Head:
+    // Get employee's Department Head:
     @RabbitListener(queues = "department-head-lookup-queue")
     public Mono<Void> findDepartmentHeadByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                                             @Header(AmqpHeaders.REPLY_TO) String replyTo) {
 
-        return findByUsername(employeeUsername)
+        return findById(employeeUsername)
                 .map(UserDto::getDepartment)
                 .map(departmentService::findByName)
                 .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead))
@@ -133,12 +167,12 @@ public class UserServiceImpl implements UserService {
                 }).then();
     }
 
-    // Get Benefits Coordinator. Placeholder for now:
+    // Get employee's Benefits Coordinator. Placeholder for now:
     @RabbitListener(queues = "benco-lookup-queue")
     public Mono<Void> findBencoByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                                            @Header(AmqpHeaders.REPLY_TO) String replyTo) {
 
-        return findByUsername(employeeUsername)
+        return findById(employeeUsername)
                 .map(UserDto::getDepartment)
                 .map(departmentService::findByName)
                 .flatMap(departmentDtoMono -> departmentDtoMono.map(DepartmentDto::getHead))
@@ -155,7 +189,7 @@ public class UserServiceImpl implements UserService {
     @RabbitListener(queues = "adjustment-request-queue")
     public Mono<Void> updateUserBalance(@Payload ReimbursementMessageDto reimbursementMessage, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
                                          @Header(AmqpHeaders.REPLY_TO) String replyTo) {
-        return findByUsername(reimbursementMessage.getUsername())
+        return findById(reimbursementMessage.getUsername())
                 .flatMap(user -> {
                     // Reimburse the total amount listed on the Form unless it is greater than User's remaining balance, in which case award the remaining balance:
                     BigDecimal userBalance = user.getRemainingBalance();
@@ -176,7 +210,7 @@ public class UserServiceImpl implements UserService {
     // Restore Pending balance to User from cancelled request:
     @RabbitListener(queues = "cancel-request-queue")
     public Mono<Void> handleCancelRequest(@Payload ReimbursementMessageDto reimbursementMessage) {
-        return findByUsername(reimbursementMessage.getUsername())
+        return findById(reimbursementMessage.getUsername())
                 .flatMap(user -> {
                     user.setRemainingBalance(user.getRemainingBalance()
                             .add(reimbursementMessage.getReimbursement())

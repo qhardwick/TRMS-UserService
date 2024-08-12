@@ -38,7 +38,7 @@ public class UserController {
     // Find User by Username:
     @GetMapping("/{username}")
     public Mono<UserDto> findUserByUsername(@PathVariable("username") String username) {
-        return userService.findByUsername(username);
+        return userService.findById(username);
     }
 
     // Find all Users. Just for testing purposes:

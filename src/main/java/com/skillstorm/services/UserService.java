@@ -10,7 +10,7 @@ public interface UserService {
     Mono<UserDto> register(UserDto newUser);
 
     // Find User by Username:
-    Mono<UserDto> findByUsername(String username);
+    Mono<UserDto> findById(String username);
 
     // Find all Users:
     Flux<UserDto> findAll();
