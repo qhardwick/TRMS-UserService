@@ -91,6 +91,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll().map(UserDto::new);
     }
 
+    // Get a User's remaining reimbursement amount:
+    @Override
+    public Mono<BigDecimal> findAvailableBalanceByUsername(String username) {
+        return findById(username)
+                .map(UserDto::getRemainingBalance);
+    }
+
     // Update User by Username:
     @Override
     public Mono<UserDto> updateUserByUsername(String username, UserDto updatedUser) {
