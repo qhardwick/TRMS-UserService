@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 @RequestMapping("/users")
 @RestController
 public class UserController {
@@ -41,6 +43,13 @@ public class UserController {
         return userService.findById(username);
     }
 
+    // View available reimbursement amount:
+    // TODO: Limit this to either the relevant User and a BENCO:
+    @GetMapping("/{username}/balance")
+    public Mono<BigDecimal> getRemainingBalance(@PathVariable("username") String username) {
+        return userService.findAvailableBalanceByUsername(username);
+    }
+
     // Find all Users. Just for testing purposes:
     @GetMapping
     public Flux<UserDto> findAll() {
@@ -57,14 +66,14 @@ public class UserController {
     // TODO: Benco (and/or maybe Department Head) only:
     // TODO: Maybe declare which Department and update the Department along with the User:
     @PutMapping("/{username}/department-head")
-    public Mono<UserDto> makeDepartmentHead(@PathVariable("username") String username, @Header("username") String authorizer) {
+    public Mono<UserDto> makeDepartmentHead(@PathVariable("username") String username, @RequestHeader("username") String authorizer) {
         return userService.makeDepartmentHead(username);
     }
 
     // Promote to Benco:
     // TODO: Benco (and/or maybe Department Head) only:
     @PutMapping("/{username}/benco")
-    public Mono<UserDto> makeBenco(@PathVariable("username") String username, @Header("username") String authorizer) {
+    public Mono<UserDto> makeBenco(@PathVariable("username") String username, @RequestHeader("username") String authorizer) {
         return userService.makeBenco(username);
     }
 

@@ -4,6 +4,8 @@ import com.skillstorm.dtos.UserDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 public interface UserService {
 
     // Register new User:
@@ -14,6 +16,9 @@ public interface UserService {
 
     // Find all Users:
     Flux<UserDto> findAll();
+
+    // Get a User's remaining reimbursement amount:
+    Mono<BigDecimal> findAvailableBalanceByUsername(String username);
 
     // Update User by Username:
     Mono<UserDto> updateUserByUsername(String username, UserDto updatedUser);

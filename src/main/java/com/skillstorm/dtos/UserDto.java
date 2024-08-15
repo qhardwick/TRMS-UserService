@@ -74,9 +74,4 @@ public class UserDto {
 
         return user;
     }
-
-    @JsonIgnore
-    public String getPassword() {
-        return password;
-    }
 }
