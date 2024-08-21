@@ -141,6 +141,20 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
+    // Get User:
+    @RabbitListener(queues = "user-lookup-queue")
+    public Mono<Void> findUserByUsername(@Payload String username, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,
+                                         @Header(AmqpHeaders.REPLY_TO) String replyTo) {
+        return findById(username)
+                .doOnSuccess(user -> {
+                    ApproverDto foundUser = new ApproverDto(username, user.getRole().name());
+                    rabbitTemplate.convertAndSend(replyTo, foundUser, message -> {
+                        message.getMessageProperties().setCorrelationId(correlationId);
+                        return message;
+                    });
+                }).then();
+    }
+
     // Get Supervisor:
     @RabbitListener(queues = "supervisor-lookup-queue")
     public Mono<Void> findSupervisorByEmployeeUsername(@Payload String employeeUsername, @Header(AmqpHeaders.CORRELATION_ID) String correlationId,

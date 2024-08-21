@@ -12,6 +12,7 @@ public enum Queues {
     REGISTRATION_RESPONSE("registration-response-queue"),
 
     // From Form-Service:
+    USER_LOOKUP("user-lookup-queue"),
     SUPERVISOR_LOOKUP("supervisor-lookup-queue"),
     DEPARTMENT_HEAD_LOOKUP("department-head-lookup-queue"),
     BENCO_LOOKUP("benco-lookup-queue"),
@@ -19,6 +20,7 @@ public enum Queues {
     CANCEL_REQUEST("cancel-request-queue"),
 
     // To Form-Service:
+    USER_REPONSE("user-response-queue"),
     SUPERVISOR_RESPONSE("supervisor-response-queue"),
     DEPARTMENT_HEAD_RESPONSE("department-head-response-queue"),
     BENCO_RESPONSE("benco-response-queue"),
