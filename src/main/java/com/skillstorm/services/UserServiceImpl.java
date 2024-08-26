@@ -49,6 +49,7 @@ public class UserServiceImpl implements UserService {
                 .flatMap(authCredentials -> userRepository.save(newUser.mapToEntity()).map(UserDto::new));
     }
 
+    // Send username and password to AuthenticationService:
     private Mono<CredentialsDto> registerWithAuthenticationService(String username, String password) {
         return Mono.create(sink -> {
             // Generate an ID for this message:
@@ -69,6 +70,7 @@ public class UserServiceImpl implements UserService {
         });
     }
 
+    // Receive response from AuthenticationService to verify success before proceeding:
     @RabbitListener(queues = "registration-response-queue")
     public Mono<Void> handleRegistrationResponse(@Payload CredentialsDto credentials, @Header(AmqpHeaders.CORRELATION_ID) String correlationId) {
         MonoSink<CredentialsDto> sink = registrationCorrelationMap.remove(correlationId);
@@ -236,8 +238,7 @@ public class UserServiceImpl implements UserService {
                     user.setRemainingBalance(user.getRemainingBalance()
                             .add(reimbursementMessage.getReimbursement())
                             .setScale(2, RoundingMode.HALF_UP));
-                    return userRepository.save(user.mapToEntity())
-                            .then();
-                });
+                    return userRepository.save(user.mapToEntity());
+                }).then();
     }
 }

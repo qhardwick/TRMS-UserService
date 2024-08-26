@@ -65,6 +65,10 @@ public class RabbitMqConfig {
 
     // From Form-Service:
     @Bean
+    public Queue userLookupQueue() {
+        return new Queue(Queues.USER_LOOKUP.toString());
+    }
+    @Bean
     public Queue supervisorLookupQueue() {
         return new Queue(Queues.SUPERVISOR_LOOKUP.getQueue());
     }
@@ -90,6 +94,11 @@ public class RabbitMqConfig {
     }
 
     // To Form-Service:
+    @Bean
+    public Queue userResponseQueue() {
+        return new Queue(Queues.USER_REPONSE.toString());
+    }
+
     @Bean
     public Queue supervisorResponseQueue() {
         return new Queue(Queues.SUPERVISOR_RESPONSE.getQueue());
@@ -133,6 +142,14 @@ public class RabbitMqConfig {
 
     // From Form-Service:
     @Bean
+    public Binding userLookupBinding(Queue userLookupQueue, Exchange directExchange) {
+        return BindingBuilder.bind(userLookupQueue)
+                .to(directExchange)
+                .with(Queues.USER_LOOKUP)
+                .noargs();
+    }
+
+    @Bean
     public Binding supervisorLookupBinding(Queue supervisorLookupQueue, Exchange directExchange) {
         return BindingBuilder.bind(supervisorLookupQueue)
                 .to(directExchange)
@@ -173,6 +190,14 @@ public class RabbitMqConfig {
     }
 
     // To Form-Service:
+    @Bean
+    public Binding userResponseBinding(Queue userResponseQueue, Exchange directExchange) {
+        return BindingBuilder.bind(userResponseQueue)
+                .to(directExchange)
+                .with(Queues.USER_REPONSE)
+                .noargs();
+    }
+
     @Bean
     public Binding supervisorResponseBinding(Queue supervisorResponseQueue, Exchange directExchange) {
         return BindingBuilder.bind(supervisorResponseQueue)
