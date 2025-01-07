@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @Table("users")
 public class User {
 
+
     @PrimaryKey("normalized_username")
     private String normalizedUsername;
 

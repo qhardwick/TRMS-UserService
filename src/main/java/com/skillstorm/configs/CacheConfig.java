@@ -30,7 +30,7 @@ public class CacheConfig {
     @Bean
     public AsyncLoadingCache<String, DepartmentDto> departmentDtoCache(DepartmentService departmentService) {
         return Caffeine.newBuilder()
-                .executor(Executors.newFixedThreadPool(3))
+                .executor(Executors.newFixedThreadPool(1))
                 .buildAsync((key, executor) -> loadDepartmentDto(key, departmentService));
     }
 

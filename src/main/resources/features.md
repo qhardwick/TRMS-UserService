@@ -20,6 +20,7 @@
 * ***As a Supervisor, if I do not approve of a form in a timely manner, it will be automatically approved.***
 * As a Supervisor, I may request additional information from the Employee before approving or denying a form.
 * As a Supervisor, I can view all reimbursement forms I have previously approved.
+* As a Supervisor, I must approve any attached Presentations after the completion of the event.
 
 ## Department Heads:
 * ***As a Department Head, I can view all reimbursement forms awaiting my approval.***
@@ -28,7 +29,6 @@
 * As a Department Head, I may request additional information from either the Employee or the Supervisor before approving or denying a form.
 * As a Department Head, I can view all reimbursement forms I have previously approved.
 * As a Department Head, I can view all reimbursement forms I have previously denied.
-* As a Department Head, I must approve any attached Presentations after the completion of the event.
 
 ## Benefits Coordinators:
 * ***As a Benefits Coordinator, I can view all reimbursement forms awaiting my approval.***

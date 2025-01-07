@@ -31,8 +31,8 @@ public class UserController {
 
     // Register new User:
     @PostMapping
-    public Mono<ResponseEntity<UserDto>> register(@Valid @RequestBody UserDto newUser) {
-        return userService.register(newUser)
+    public Mono<ResponseEntity<UserDto>> register(@Valid @RequestBody Mono<UserDto> newUser) {
+        return newUser.flatMap(userService::register)
                 .map(createdUser -> ResponseEntity.status(HttpStatus.CREATED).body(createdUser));
     }
 
@@ -57,8 +57,8 @@ public class UserController {
 
     // Update User by Username:
     @PutMapping("/{username}")
-    public Mono<UserDto> updateUserByUsername(@PathVariable("username") String username, @Valid @RequestBody UserDto updatedUser) {
-        return userService.updateUserByUsername(username, updatedUser);
+    public Mono<UserDto> updateUserByUsername(@PathVariable("username") String username, @Valid @RequestBody Mono<UserDto> updatedUser) {
+        return updatedUser.flatMap(userData -> userService.updateUserByUsername(username, userData));
     }
 
     // Promote to Department Head:
