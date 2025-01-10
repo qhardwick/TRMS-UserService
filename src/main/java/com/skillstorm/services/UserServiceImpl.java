@@ -44,9 +44,9 @@ public class UserServiceImpl implements UserService {
     // Register new User:
     @Override
     public Mono<UserDto> register(UserDto newUser) {
-        newUser.setEmail(newUser.getUsername().toLowerCase() + "@corporate.com");
         return registerWithAuthenticationService(newUser.getUsername(), newUser.getPassword())
-                .flatMap(authCredentials -> userRepository.save(newUser.mapToEntity()).map(UserDto::new));
+                .flatMap(ignored -> userRepository.save(newUser.mapToEntity())
+                        .map(UserDto::new));
     }
 
     // Send username and password to AuthenticationService:
